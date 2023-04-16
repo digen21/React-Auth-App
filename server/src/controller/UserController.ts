@@ -1,6 +1,7 @@
-import bcrypt from "bcrypt";
-import { UserModel } from "@models/userModel";
 import { Request, Response } from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { UserModel } from "@models/userModel";
 
 interface IUser {
   username: String;
@@ -8,6 +9,8 @@ interface IUser {
   password: String;
   verified: Boolean;
 }
+
+const { JWT_TOKEN, EXPIRY_TIME } = process.env;
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -51,9 +54,14 @@ const login = async (req: Request, res: Response) => {
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (isMatch) {
+        const token = jwt.sign({ userId: user.id }, JWT_TOKEN, {
+          expiresIn: EXPIRY_TIME,
+        });
+
         res.send({
           success: true,
           message: "Authenticated",
+          token: token,
         });
       } else {
         res.send({

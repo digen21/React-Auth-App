@@ -58,7 +58,7 @@ function Login() {
               progress: undefined,
               theme: "light",
             });
-            localStorage.setItem("data", JSON.stringify(userData));
+            localStorage.setItem("data", JSON.stringify(log.data.token));
             navigate("/dash");
           } else {
             toast.error(log.data.message, {
