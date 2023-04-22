@@ -3,13 +3,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserModel } from "@models/userModel";
 
-interface IUser {
-  username: String;
-  email: String;
-  password: String;
-  verified: Boolean;
-}
-
 const { JWT_TOKEN, EXPIRY_TIME } = process.env;
 
 const register = async (req: Request, res: Response) => {
