@@ -14,7 +14,6 @@ const isAuth: RequestHandler = (
   next: NextFunction
 ) => {
   const token = options.jwtFromRequest(req);
-  console.log("Passport", token);
 
   if (token) {
     const auth = passport.authenticate("jwt", { session: true })(
