@@ -70,6 +70,11 @@ const login = async (req: Request, res: Response) => {
           message: "Unauthorized",
         });
       }
+    } else {
+      res.send({
+        success: false,
+        message: "Please Check Email OR Password",
+      });
     }
   } catch (error) {
     res.status(500).send(error);
