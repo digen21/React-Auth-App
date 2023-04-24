@@ -31,3 +31,10 @@ body {
 .card {
     margin: 10px auto;
 }
+
+
+.--update-btn:hover {
+    cursor: pointer;
+    transition: 0.3s ease;
+    transform: scale(1.1);
+}

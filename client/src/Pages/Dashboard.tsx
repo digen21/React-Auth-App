@@ -18,7 +18,13 @@ function Dashboard() {
   const [name, setName] = useState<IUser | any>(null);
   const [passwordType, setPasswordType] = useState("password");
   const [passwordInput, setPasswordInput] = useState("");
+  const [isShown, setIsShown] = useState(false);
+
   const navigate = useNavigate();
+
+  const handleClick = (event: any) => {
+    setIsShown((current) => !current);
+  };
 
   const loadData = async () => {
     try {
@@ -127,7 +133,7 @@ function Dashboard() {
           Logout
         </button>
       </div>
-      <div className=" d-flex justify-content-center">
+      <div className=" d-flex justify-content-center mt-5">
         <div className="card p-3">
           <div className="media">
             <img
@@ -140,8 +146,9 @@ function Dashboard() {
               <div className="d-flex flex-row justify-content-between align-text-center">
                 <small className="text-muted">{name?.email}</small>
                 <h2
-                  className="btn btn-primary mr-2 px-2"
+                  className="btn btn-primary mr-2 px-2 --update-btn"
                   style={{ fontSize: ".6rem" }}
+                  onClick={handleClick}
                 >
                   Update Profile
                 </h2>
@@ -150,120 +157,122 @@ function Dashboard() {
           </div>
         </div>
       </div>
-      <div className="card p-3 bg-white d-flex justify-content-center align-items-center">
-        <form
-          action=""
-          className="mt-5 mx-4 "
-          onSubmit={handleSubmit(updateSubmit)}
-        >
-          <div className="form-group">
-            <h5>Name</h5>
-            <input
-              type="text"
-              value={name?.username || ""}
-              className="form-control"
-              placeholder="Username"
-              autoFocus
-              {...register("username", { required: true, minLength: 4 })}
-              name={"username"}
-              readOnly
-            />
-          </div>
-          <div className="form-group mt-4 ">
-            <h5>Email</h5>
-            <input
-              type="email"
-              value={name?.email || ""}
-              className="form-control"
-              placeholder="Email Address"
-              {...register("email", {
-                required: true,
-                pattern: emailPattern,
-              })}
-              readOnly
-            />
-          </div>
-          <div className="form-group mt-4">
-            <h5>Current Password</h5>
-            <input
-              type="password"
-              {...register("curPassword", {
-                required: true,
-                pattern: passwordPattern,
-              })}
-              className="form-control"
-              placeholder="Enter Current Password"
-              name={"curPassword"}
-            />
-          </div>
-          <h5 className="mt-4">New Password</h5>
-          <div className="input-group ">
-            <input
-              type={passwordType}
-              className="form-control  shadow-none"
-              placeholder="Password"
-              {...register("password", {
-                required: true,
-                pattern: passwordPattern,
-              })}
-              onChange={handlePasswordChange}
-              value={passwordInput}
-              name={"password"}
-            />
-            <div className="input-group-append">
-              <button
-                type="button"
-                className="btn btn-outline-primary shadow-none"
-                onClick={togglePassword}
-              >
-                {passwordType === "password" ? <UilEyeSlash /> : <UilEye />}
-              </button>
+      {isShown && (
+        <div className="card p-3 bg-white d-flex justify-content-center align-items-center">
+          <form
+            action=""
+            className="mt-5 mx-4 "
+            onSubmit={handleSubmit(updateSubmit)}
+          >
+            <div className="form-group">
+              <h5>Name</h5>
+              <input
+                type="text"
+                value={name?.username || ""}
+                className="form-control"
+                placeholder="Username"
+                autoFocus
+                {...register("username", { required: true, minLength: 4 })}
+                name={"username"}
+                readOnly
+              />
+            </div>
+            <div className="form-group mt-4 ">
+              <h5>Email</h5>
+              <input
+                type="email"
+                value={name?.email || ""}
+                className="form-control"
+                placeholder="Email Address"
+                {...register("email", {
+                  required: true,
+                  pattern: emailPattern,
+                })}
+                readOnly
+              />
+            </div>
+            <div className="form-group mt-4">
+              <h5>Current Password</h5>
+              <input
+                type="password"
+                {...register("curPassword", {
+                  required: true,
+                  pattern: passwordPattern,
+                })}
+                className="form-control"
+                placeholder="Enter Current Password"
+                name={"curPassword"}
+              />
+            </div>
+            <h5 className="mt-4">New Password</h5>
+            <div className="input-group ">
+              <input
+                type={passwordType}
+                className="form-control  shadow-none"
+                placeholder="Password"
+                {...register("password", {
+                  required: true,
+                  pattern: passwordPattern,
+                })}
+                onChange={handlePasswordChange}
+                value={passwordInput}
+                name={"password"}
+              />
+              <div className="input-group-append">
+                <button
+                  type="button"
+                  className="btn btn-outline-primary shadow-none"
+                  onClick={togglePassword}
+                >
+                  {passwordType === "password" ? <UilEyeSlash /> : <UilEye />}
+                </button>
+              </div>
+
+              {errors.password && (
+                <div>
+                  <p className="text-danger mt-1">
+                    Password should be of length 6-15!
+                  </p>
+                  <p className="text-danger mt-1">
+                    Should contain at least one uppercase, lowercase, number &
+                    special character!
+                  </p>
+                </div>
+              )}
             </div>
 
-            {errors.password && (
-              <div>
-                <p className="text-danger mt-1">
-                  Password should be of length 6-15!
-                </p>
-                <p className="text-danger mt-1">
-                  Should contain at least one uppercase, lowercase, number &
-                  special character!
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="form-group mt-4">
-            <h6>Confirm Password</h6>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Re-enter Password"
-              {...register("cpassword", {
-                required: true,
-                pattern: passwordPattern,
-              })}
-              name={"cpassword"}
-            />
-            {errors.password && (
-              <div>
-                <p className="text-danger mt-1">
-                  Password should be of length 6-15!
-                </p>
-                <p className="text-danger mt-1">
-                  Should contain at least one uppercase, lowercase, number &
-                  special character!
-                </p>
-              </div>
-            )}
-          </div>
-          <div className="form-group mt-4">
-            <button type="submit" className="btn btn-success form-control">
-              Submit
-            </button>
-          </div>
-        </form>
-      </div>
+            <div className="form-group mt-4">
+              <h6>Confirm Password</h6>
+              <input
+                type="password"
+                className="form-control"
+                placeholder="Re-enter Password"
+                {...register("cpassword", {
+                  required: true,
+                  pattern: passwordPattern,
+                })}
+                name={"cpassword"}
+              />
+              {errors.password && (
+                <div>
+                  <p className="text-danger mt-1">
+                    Password should be of length 6-15!
+                  </p>
+                  <p className="text-danger mt-1">
+                    Should contain at least one uppercase, lowercase, number &
+                    special character!
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="form-group mt-4">
+              <button type="submit" className="btn btn-success form-control">
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
