@@ -127,27 +127,38 @@ function Dashboard() {
   return (
     <div>
       <ToastContainer />
-      <div className="bg-success p-2 w-100 d-flex justify-content-between">
+      <div
+        className="p-3 w-100 d-flex justify-content-between --nav"
+        style={{ backgroundColor: "#d1e892" }}
+      >
         <h2 className="text-center">Dashboard</h2>
-        <button className="btn btn-danger" onClick={logout}>
+        <button
+          className="btn btn-danger"
+          onClick={logout}
+          style={{ backgroundColor: "#f5bf5b", border: "none", color: "#000" }}
+        >
           Logout
         </button>
       </div>
       <div className=" d-flex justify-content-center mt-5">
-        <div className="card p-3">
+        <div className="card p-4 pb-0" style={{ backgroundColor: "#b07fea" }}>
           <div className="media">
             <img
               src="/man.png"
-              className="mr-3"
+              className="mr-3 mb-1 --profile-image"
               style={{ height: "80px", width: "80px" }}
             />
             <div className="media-body">
               <h5 className="mt-2 mb-0">{name?.username}</h5>
               <div className="d-flex flex-row justify-content-between align-text-center">
-                <small className="text-muted">{name?.email}</small>
+                <small style={{ color: "#0d0d0d" }}>{name?.email}</small>
                 <h2
-                  className="btn btn-primary mr-2 px-2 --update-btn"
-                  style={{ fontSize: ".6rem" }}
+                  className="btn mr-2 px-2 --update-btn"
+                  style={{
+                    fontSize: ".6rem",
+                    backgroundColor: "#0d0d0d",
+                    color: "#fff",
+                  }}
                   onClick={handleClick}
                 >
                   Update Profile
@@ -158,12 +169,8 @@ function Dashboard() {
         </div>
       </div>
       {isShown && (
-        <div className="card p-3 bg-white d-flex justify-content-center align-items-center">
-          <form
-            action=""
-            className="mt-5 mx-4 "
-            onSubmit={handleSubmit(updateSubmit)}
-          >
+        <div className="card mt-0 p-3 d-flex justify-content-center align-items-center">
+          <form className="mt-5 mx-4 " onSubmit={handleSubmit(updateSubmit)}>
             <div className="form-group">
               <h5>Name</h5>
               <input
