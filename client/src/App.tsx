@@ -5,6 +5,7 @@ import "./App.css";
 import Login from "@/Pages/Login";
 import Register from "@/Pages/Register";
 import Dashboard from "@/Pages/Dashboard";
+import VerifyEmail from "@/Pages/VerifyEmail";
 
 //Auth Routes
 import PublicRoutes from "@/Routes/PublicRoutes";
@@ -37,6 +38,14 @@ function App() {
               <ProtectedRoutes>
                 <Dashboard />
               </ProtectedRoutes>
+            }
+          />
+          <Route
+            path="/verify"
+            element={
+              <PublicRoutes>
+                <VerifyEmail />
+              </PublicRoutes>
             }
           />
         </Routes>

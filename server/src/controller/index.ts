@@ -1,1 +1,1 @@
-export { register, login, updateUser } from "./UserController";
+export { register, login, updateUser, verifyMail } from "./UserController";

@@ -1,7 +1,7 @@
 import express from "express";
 const authRouter = express.Router();
 
-import { register, login, updateUser } from "@controllers";
+import { register, login, updateUser, verifyMail } from "@controllers";
 import { isAuth } from "@middlewares";
 
 authRouter.post("/register", register);
@@ -16,6 +16,8 @@ authRouter.get("/dashboard", isAuth, (req, res) => {
     data: req.user,
   });
 });
+
+authRouter.post("/verify-mail", verifyMail);
 
 authRouter.post("/update", isAuth, updateUser);
 

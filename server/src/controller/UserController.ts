@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserModel } from "@models/userModel";
+import TokenModel from "@models/tokenModel";
+import { transporter } from "@middlewares";
 
 const { JWT_TOKEN, EXPIRY_TIME } = process.env;
 
@@ -11,6 +13,7 @@ interface IUser {
   id: string;
   _id: string;
   email: string;
+  isVerified: boolean;
 }
 
 const register = async (req: Request, res: Response) => {
@@ -28,6 +31,9 @@ const register = async (req: Request, res: Response) => {
       ...req.body,
       password: hashPassword,
     });
+
+    await transporter(result, "verify-mail");
+
     if (result) {
       res.status(200).send({
         success: true,
@@ -55,15 +61,22 @@ const login = async (req: Request, res: Response) => {
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (isMatch) {
-        const token = jwt.sign({ userId: user.id }, JWT_TOKEN, {
-          expiresIn: EXPIRY_TIME,
-        });
+        if (user.isVerified) {
+          const token = jwt.sign({ userId: user.id }, JWT_TOKEN, {
+            expiresIn: EXPIRY_TIME,
+          });
 
-        res.send({
-          success: true,
-          message: "Authenticated",
-          token: token,
-        });
+          res.send({
+            success: true,
+            message: "Authenticated",
+            token: token,
+          });
+        } else {
+          res.send({
+            success: false,
+            message: "Please Verify Your Email First...",
+          });
+        }
       } else {
         res.send({
           success: false,
@@ -117,4 +130,30 @@ const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-export { register, login, updateUser };
+const verifyMail = async (req: Request, res: Response) => {
+  console.log("token : ", req.body.token);
+  try {
+    const tokenDetails = await TokenModel.findOne({ token: req.body.token });
+    if (tokenDetails) {
+      await UserModel.findOneAndUpdate({
+        id: tokenDetails.userId,
+        isVerified: true,
+      });
+
+      await TokenModel.findOneAndDelete({
+        token: req.body.token,
+      });
+
+      res.send({
+        success: true,
+        message: "Mail Verified",
+      });
+    } else {
+      res.send({ success: false, message: "Invalid Token" });
+    }
+  } catch (error) {
+    res.send({ success: false, message: "Invalid Token" });
+  }
+};
+
+export { register, login, updateUser, verifyMail };
