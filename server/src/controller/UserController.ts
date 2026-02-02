@@ -81,7 +81,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
       if (isMatch) {
         if (user.isVerified) {
           const token = jwt.sign({ userId: user.id }, JWT_TOKEN!, {
-            expiresIn: Number(EXPIRY_TIME),
+            expiresIn: "10d",
           });
 
           return res.send({
