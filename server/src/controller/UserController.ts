@@ -1,7 +1,7 @@
 import { transporter } from "@middlewares";
 import TokenModel from "@models/tokenModel";
 import { UserModel } from "@models/userModel";
-import { ServerError } from "@utils";
+import { logger, ServerError } from "@utils";
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
@@ -29,9 +29,10 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
 
     let user = await UserModel.findOne({ email });
     if (user)
-      res.status(200).send({
-        success: false,
+      throw new ServerError({
         message: "User Already Exists...",
+        success: false,
+        status: 400,
       });
     const hashPassword = await bcrypt.hash(password, 10);
     const result = await UserModel.create({
@@ -42,18 +43,27 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
     await transporter(result, "verify-mail");
 
     if (result) {
-      res.status(200).send({
+      return res.status(200).send({
         success: true,
         message: "Registered Successfully...",
       });
-    } else {
-      res.status(200).send({
-        success: false,
-        message: "Check Email OR Password",
-      });
     }
+
+    throw new ServerError({
+      success: false,
+      message: "Check email or password",
+      status: 400,
+    });
   } catch (error) {
-    res.status(500).send(error);
+    logger.error(error);
+    if (error instanceof ServerError) return next(error);
+    return next(
+      new ServerError({
+        message: "Failed to register",
+        success: false,
+        status: 500,
+      }),
+    );
   }
 };
 
@@ -100,6 +110,8 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
       });
     }
   } catch (error) {
+    logger.error(error);
+
     if (error instanceof ServerError) next(error);
 
     return next(
@@ -149,6 +161,7 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
       data: updateUser,
     });
   } catch (error) {
+    logger.error(error);
     if (error instanceof ServerError) return next(error);
     throw new ServerError({
       message: "Failed to update user",

@@ -33,7 +33,6 @@ const userSchema = new Schema(
       type: "string",
       trim: true,
       required: true,
-      select: false,
     },
     isVerified: {
       type: "boolean",
