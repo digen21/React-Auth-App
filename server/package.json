@@ -1,5 +1,5 @@
 {
-  "name": "react-chat-app",
+  "name": "react-auth-app",
   "version": "1.0.0",
   "description": "React-Chat-App",
   "main": "index.js",
@@ -12,6 +12,7 @@
   "author": "Digen More",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
@@ -21,7 +22,6 @@
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.4",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
@@ -40,9 +40,9 @@
     "@types/passport-jwt": "^3.0.13",
     "@types/typescript": "^2.0.0",
     "@types/winston": "^2.4.4",
-    "bcrypt": "^5.1.0",
     "nodemon": "^3.1.11",
     "tsc-alias": "^1.8.16",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
   }
 }

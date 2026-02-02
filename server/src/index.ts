@@ -15,14 +15,6 @@ const app = express();
 const { PORT } = process.env;
 
 app.use(requestLogger);
-
-app.use((req, _res, next) => {
-  console.debug(
-    `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} `,
-  );
-  next();
-});
-
 app.use(express.json());
 app.use(cors());
 

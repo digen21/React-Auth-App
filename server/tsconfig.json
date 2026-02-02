@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "lib": ["es2018"],
-    "target": "es2018",
+    "lib": ["ESNext", "DOM"], // This fixes the 'console' and 'process' errors
+    "target": "ESNext",
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "./build",
@@ -10,6 +10,7 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "@middlewares": ["./src/middlewares/"],
