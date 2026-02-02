@@ -4,13 +4,17 @@ import {
   connectToDatabase,
   globalErrorHandler,
   passportAuth,
+  requestLogger,
 } from "@middlewares";
 import { authRouter } from "@routes";
+import { logger } from "@utils";
 import cors from "cors";
 import express from "express";
 
 const app = express();
 const { PORT } = process.env;
+
+app.use(requestLogger);
 
 app.use((req, _res, next) => {
   console.debug(
@@ -37,5 +41,5 @@ passportAuth(app);
 app.use(globalErrorHandler);
 
 app.listen(PORT, () =>
-  console.log(`Server Started On http://localhost:${PORT} 🚀`),
+  logger.info(`Server Started On http://localhost:${PORT} 🚀`),
 );

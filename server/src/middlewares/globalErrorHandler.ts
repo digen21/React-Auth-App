@@ -7,7 +7,6 @@ const globalErrorHandler = (
   res: Response,
   _next: NextFunction,
 ) => {
-  console.log(err);
   if (err instanceof ServerError) {
     return res
       .status(err.status)

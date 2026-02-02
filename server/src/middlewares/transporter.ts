@@ -29,10 +29,8 @@ export default async (data, mailType) => {
       userId: data.id,
       token: verifyToken,
     });
-    console.log("Token Data: ", token);
 
     await token.save();
-    console.log("Verify Token", verifyToken);
 
     const options = {
       from: EMAIL_FROM,
@@ -41,9 +39,6 @@ export default async (data, mailType) => {
       html: ` <a href="http://localhost:3000/verify?token=${verifyToken}">Click Here To Verify Mail</a>`,
     };
 
-    const sendMail = await transporter.sendMail(options);
-    console.log(nodemailer.getTestMessageUrl(sendMail));
-  } catch (error) {
-    console.log(error);
-  }
+    await transporter.sendMail(options);
+  } catch (error) {}
 };

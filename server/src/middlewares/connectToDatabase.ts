@@ -1,3 +1,4 @@
+import { logger } from "@utils";
 import mongoose from "mongoose";
 
 const { MONGO_URI } = process.env;
@@ -7,11 +8,11 @@ export default () => {
     mongoose
       .connect(MONGO_URI)
       .then(() => {
-        console.log("Connected To Database...💾");
+        logger.info("Connected To Database...💾");
       })
-      .catch((e) => console.log("Failed To Connect", e));
+      .catch((e) => logger.error("Failed To Connect: ", e));
   } catch (error) {
-    console.log("Error Occurred", error);
+    logger.error("Error Occurred While connecting database: ", error);
     process.exit();
   }
 };
