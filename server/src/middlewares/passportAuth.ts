@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import passport from "passport";
 import { Express } from "express";
@@ -26,7 +27,7 @@ export default (app: Express) => {
         const user = await UserModel.findById(userId);
 
         return done(null, user || false);
-      })
+      }),
     );
 
     passport.serializeUser((user: IUser, done: Function) => {

@@ -9,7 +9,7 @@ export default () => {
       .then(() => {
         console.log("Connected To Database...💾");
       })
-      .catch(() => console.log("Failed To Connect"));
+      .catch((e) => console.log("Failed To Connect", e));
   } catch (error) {
     console.log("Error Occurred", error);
     process.exit();

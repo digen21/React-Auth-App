@@ -5,20 +5,17 @@ import { register, login, updateUser, verifyMail } from "@controllers";
 import { isAuth } from "@middlewares";
 
 authRouter.post("/register", register);
-authRouter.post(
-  "/login",
+authRouter.post("/login", login);
+authRouter.post("/verify-mail", verifyMail);
 
-  login
-);
-authRouter.get("/dashboard", isAuth, (req, res) => {
-  res.send({
+authRouter.get("/profile", isAuth, (req, res) => {
+  return res.status(200).send({
     success: true,
-    data: req.user,
+    user: req.user,
+    status: 200,
   });
 });
 
-authRouter.post("/verify-mail", verifyMail);
-
-authRouter.post("/update", isAuth, updateUser);
+authRouter.put("/update", isAuth, updateUser);
 
 export default authRouter;

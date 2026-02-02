@@ -8,22 +8,21 @@ const options = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 };
 
-const isAuth: RequestHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const token = options.jwtFromRequest(req);
+const isAuth: RequestHandler = (req, res, next) => {
+  passport.authenticate("jwt", { session: false }, (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
 
-  if (token) {
-    const auth = passport.authenticate("jwt", { session: true })(
-      req,
-      res,
-      next
-    );
-  } else {
+    if (!user) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    req.user = user;
     next();
-  }
+  })(req, res, next);
 };
 
 export default isAuth;

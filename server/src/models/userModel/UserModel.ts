@@ -5,23 +5,42 @@ const userSchema = new Schema(
     username: {
       type: "string",
       trim: true, // will remove white space
-      required: true,
+    },
+    name: {
+      type: "string",
+      trim: true, // will remove white space
     },
     email: {
       type: "string",
       required: true,
     },
+    phoneNumber: {
+      type: "string",
+    },
+    bio: {
+      type: "string",
+    },
+    avatar: {
+      type: "string",
+    },
+    city: {
+      type: "string",
+    },
+    country: {
+      type: "string",
+    },
     password: {
       type: "string",
       trim: true,
       required: true,
+      select: false,
     },
     isVerified: {
       type: "boolean",
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default model("users", userSchema);
+export default model("User", userSchema, "users");
