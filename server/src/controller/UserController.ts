@@ -9,11 +9,17 @@ import jwt from "jsonwebtoken";
 const { JWT_TOKEN, EXPIRY_TIME } = process.env;
 
 interface IUser {
-  username: string;
+  username?: string;
+  name?: string;
+  city?: string;
+  country?: string;
   password: string;
   id: string;
   _id: string;
   email: string;
+  bio?: string;
+  avatar?: string;
+  phoneNumber?: string;
   isVerified: boolean;
 }
 
@@ -64,8 +70,8 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
       if (isMatch) {
         if (user.isVerified) {
-          const token = jwt.sign({ userId: user.id }, JWT_TOKEN, {
-            expiresIn: EXPIRY_TIME,
+          const token = jwt.sign({ userId: user.id }, JWT_TOKEN!, {
+            expiresIn: Number(EXPIRY_TIME),
           });
 
           return res.send({

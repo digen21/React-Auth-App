@@ -7,12 +7,10 @@ import {
 } from "@middlewares";
 import { authRouter } from "@routes";
 import cors from "cors";
-
 import express from "express";
-import session from "express-session";
 
 const app = express();
-const { PORT, SESSION_SECRET } = process.env;
+const { PORT } = process.env;
 
 app.use((req, _res, next) => {
   console.debug(
@@ -20,14 +18,6 @@ app.use((req, _res, next) => {
   );
   next();
 });
-
-app.use(
-  session({
-    resave: false,
-    secret: SESSION_SECRET,
-    saveUninitialized: false,
-  }),
-);
 
 app.use(express.json());
 app.use(cors());
