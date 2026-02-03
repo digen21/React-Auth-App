@@ -18,6 +18,8 @@ app.use(globalErrorHandler);
 export const setupDatabase = () => {
   beforeAll(async () => {
     await connectToDatabase();
+    // Ensure clean database
+    await UserModel.deleteMany({});
   });
 
   // Clean up after each test

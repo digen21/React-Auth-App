@@ -34,7 +34,9 @@ export const register = catchAsync(async (req: Request, res: Response) => {
 
   // avoid breaking the code if send verification mail is failed
   try {
-    await transporter(result, "verify-mail");
+    if (!env.isTest) {
+      await transporter(result, "verify-mail");
+    }
   } catch (error) {
     logger.error("Failed to send verification mail: ", {
       error,

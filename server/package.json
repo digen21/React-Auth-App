@@ -7,7 +7,7 @@
     "start": "node ./build/index.js",
     "dev": "nodemon ./src/index.ts",
     "build": "tsc && tsc-alias",
-    "test": "cross-env NODE_ENV=test jest"
+    "test": "cross-env NODE_ENV=test jest --runInBand"
   },
   "keywords": [],
   "author": "Digen More",
