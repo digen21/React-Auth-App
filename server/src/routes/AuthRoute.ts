@@ -8,13 +8,18 @@ import {
   register,
   verifyMail,
 } from "@controllers";
-import { isAuth } from "@middlewares";
+import { isAuth, validate } from "@middlewares";
+import {
+  registerValidator,
+  loginValidator,
+  verifyMailValidator,
+} from "@validators";
 
 const authRouter = express.Router();
 
-authRouter.post("/register", register);
-authRouter.post("/login", login);
-authRouter.post("/verify-mail", verifyMail);
+authRouter.post("/register", validate(registerValidator), register);
+authRouter.post("/login", validate(loginValidator), login);
+authRouter.post("/verify-mail", validate(verifyMailValidator), verifyMail);
 authRouter.get("/profile", isAuth, (req, res) => {
   return res.status(200).send({
     success: true,

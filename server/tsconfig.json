@@ -19,7 +19,8 @@
       "@models/*": ["./src/models/*"],
       "@utils": ["./src/utils"],
       "@types": ["./src/types"],
-      "@config": ["./src/config"]
+      "@config": ["./src/config"],
+      "@validators": ["./src/validators"]
     }
   },
   "include": ["src/**/*.ts", "index.ts"],

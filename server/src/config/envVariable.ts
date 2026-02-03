@@ -36,11 +36,11 @@ const env = {
   isProd: envVars.NODE_ENV === "production",
   isDev: envVars.NODE_ENV === "development",
   JWT_TOKEN: envVars.JWT_TOKEN,
-  SMTP_HOST: envVars.SMTP_HOST,
-  SMTP_PORT: envVars.SMTP_PORT,
-  SMTP_USER: envVars.SMTP_USER,
-  SMTP_PASS: envVars.SMTP_PASS,
-  SMTP_FROM_NAME: envVars.SMTP_FROM_NAME || "no-reply@travel-buddy",
+  MAIL_HOST: envVars.SMTP_HOST,
+  MAIL_PORT: envVars.SMTP_PORT,
+  MAIL_USER: envVars.SMTP_USER,
+  MAIL_PASSWORD: envVars.SMTP_PASS,
+  EMAIL_FROM: envVars.SMTP_FROM_NAME || "no-reply@travel-buddy",
   EXPIRY_TIME: envVars.EXPIRY_TIME || "10d",
 };
 

@@ -16,13 +16,6 @@ const { JWT_TOKEN, EXPIRY_TIME } = env;
 export const register = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  if (!email || !password)
-    throw new ServerError({
-      message: "Invalid Input",
-      success: false,
-      status: httpStatus.BAD_REQUEST,
-    });
-
   let user = await UserModel.findOne({ email });
   if (user)
     throw new ServerError({
