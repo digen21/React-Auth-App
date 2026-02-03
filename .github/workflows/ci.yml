@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # CRITICAL: Tell GitHub which environment to pull secrets from
+    environment: JWT_TOKEN 
 
     strategy:
       matrix:
@@ -36,22 +38,13 @@ jobs:
         cd client
         npm ci
 
-    - name: Build server
-      run: |
-        cd server
-        npm run build
-
-    - name: Build client
-      run: |
-        cd client
-        npm run build
-
     - name: Run server tests
       run: |
         cd server
         npm test
       env:
         NODE_ENV: test
-        JWT_TOKEN: ${{ secrets.JWT_TOKEN || 'test-jwt-secret' }}
-        MONGO_URI_TEST: ${{ secrets.MONGO_URI_TEST || 'mongodb://localhost:27017/test-db' }}
-        # Add other required env vars for tests
+        # STOP using || 'fallback'. If the secret is missing, you WANT the test to fail 
+        # so you know your config is broken.
+        JWT_TOKEN: ${{ secrets.JWT_TOKEN }}
+        MONGO_URI_TEST: ${{ secrets.MONGO_URI_TEST }}
