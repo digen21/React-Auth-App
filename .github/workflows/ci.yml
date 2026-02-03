@@ -52,6 +52,6 @@ jobs:
         npm test
       env:
         NODE_ENV: test
-        JWT_TOKEN: ${{ secrets.JWT_TOKEN }}
-        MONGO_URI_TEST: ${{ secrets.MONGO_URI_TEST }}
+        JWT_TOKEN: ${{ secrets.JWT_TOKEN || 'test-jwt-secret' }}
+        MONGO_URI_TEST: ${{ secrets.MONGO_URI_TEST || 'mongodb://localhost:27017/test-db' }}
         # Add other required env vars for tests
