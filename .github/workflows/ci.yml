@@ -47,4 +47,5 @@ jobs:
         # STOP using || 'fallback'. If the secret is missing, you WANT the test to fail 
         # so you know your config is broken.
         JWT_TOKEN: ${{ secrets.JWT_TOKEN }}
+        MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
         MONGO_URI_TEST: ${{ secrets.MONGO_URI_TEST }}
