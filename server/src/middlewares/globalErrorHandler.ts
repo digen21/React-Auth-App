@@ -1,4 +1,4 @@
-import { ServerError } from "@utils";
+import { logger, ServerError } from "@utils";
 import { NextFunction, Request, Response } from "express";
 
 const globalErrorHandler = (
@@ -7,6 +7,11 @@ const globalErrorHandler = (
   res: Response,
   _next: NextFunction,
 ) => {
+  logger.error("Error : ", {
+    context: "Global Error Handler",
+    error: err,
+  });
+
   if (err instanceof ServerError) {
     return res
       .status(err.status)

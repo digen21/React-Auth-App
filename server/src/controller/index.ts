@@ -1,1 +1,9 @@
-export { register, login, updateUser, verifyMail } from "./UserController";
+export {
+  findOrCreateGoogleUser,
+  googleAuthFailure,
+  googleAuthSuccess,
+  login,
+  register,
+  updateUser,
+  verifyMail,
+} from "./UserController";

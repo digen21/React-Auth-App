@@ -1,13 +1,20 @@
 import express from "express";
-const authRouter = express.Router();
+import passport from "passport";
 
-import { register, login, updateUser, verifyMail } from "@controllers";
+import {
+  googleAuthFailure,
+  googleAuthSuccess,
+  login,
+  register,
+  verifyMail,
+} from "@controllers";
 import { isAuth } from "@middlewares";
+
+const authRouter = express.Router();
 
 authRouter.post("/register", register);
 authRouter.post("/login", login);
 authRouter.post("/verify-mail", verifyMail);
-
 authRouter.get("/profile", isAuth, (req, res) => {
   return res.status(200).send({
     success: true,
@@ -16,6 +23,17 @@ authRouter.get("/profile", isAuth, (req, res) => {
   });
 });
 
-authRouter.put("/update", isAuth, updateUser);
+authRouter.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] }),
+);
+
+authRouter.get(
+  "/google/callback",
+  passport.authenticate("google", { session: false }),
+  googleAuthSuccess,
+);
+
+authRouter.get("/google/failure", googleAuthFailure);
 
 export default authRouter;

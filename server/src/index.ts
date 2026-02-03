@@ -1,18 +1,20 @@
-import "dotenv/config";
-
-import {
-  connectToDatabase,
-  globalErrorHandler,
-  passportAuth,
-  requestLogger,
-} from "@middlewares";
-import { authRouter } from "@routes";
-import { logger } from "@utils";
+import compression from "compression";
 import cors from "cors";
 import express from "express";
 
+import { env } from "@config";
+import {
+  connectToDatabase,
+  globalErrorHandler,
+  googleAuth,
+  passportAuth,
+  requestLogger,
+} from "@middlewares";
+import useRouter from "@routes";
+import { logger } from "@utils";
+
 const app = express();
-const { PORT } = process.env;
+const { PORT } = env;
 
 app.use(requestLogger);
 app.use(express.json());
@@ -25,10 +27,13 @@ app.get("/health", (_req, res) => {
   });
 });
 
-app.use("/auth", authRouter);
+app.use(compression());
+
+useRouter(app);
 
 connectToDatabase();
 passportAuth(app);
+googleAuth(app);
 
 app.use(globalErrorHandler);
 

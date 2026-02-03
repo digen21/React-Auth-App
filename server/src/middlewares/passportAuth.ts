@@ -1,9 +1,9 @@
-import "dotenv/config";
-import { ExtractJwt, Strategy } from "passport-jwt";
-import passport from "passport";
 import { Express } from "express";
+import passport from "passport";
+import { ExtractJwt, Strategy } from "passport-jwt";
 
 import { UserModel } from "@models/userModel";
+
 const { JWT_TOKEN } = process.env;
 
 interface IUser {
@@ -30,17 +30,7 @@ export default (app: Express) => {
       }),
     );
 
-    passport.serializeUser((user: IUser, done: Function) => {
-      done(null, user.id);
-    });
-
-    passport.deserializeUser(async (id: IUser, done: Function) => {
-      const user = await UserModel.findById(id);
-      done(null, user);
-    });
-
     app.use(passport.initialize());
-    app.use(passport.session());
   } catch (error) {
     throw new Error(error);
   }

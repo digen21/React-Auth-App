@@ -1,6 +1,9 @@
 import { createLogger, format, transports, addColors } from "winston";
 import "winston-daily-rotate-file";
 import path from "path";
+import util from "util";
+
+import { env } from "@config";
 
 const { combine, timestamp, json, printf, colorize, errors } = format;
 
@@ -14,26 +17,28 @@ const customColors = {
 addColors(customColors);
 
 // Custom format for local development
-const logFormat = printf(({ level, message, timestamp, stack }) => {
-  return `${timestamp} ${level}: ${stack || message}`;
+const logFormat = printf(({ level, message, timestamp, context, ...meta }) => {
+  const metaString =
+    Object.keys(meta).length > 0
+      ? ` ${util.inspect(meta, { depth: null, colors: false })}`
+      : "";
+
+  return `${timestamp} ${level.toUpperCase()}${
+    context ? ` [${context}]` : ""
+  } ${message}${metaString}`;
 });
 
 const logger = createLogger({
-  level: process.env.NODE_ENV === "production" ? "info" : "debug",
+  level: env.isProd ? "info" : "debug",
   format: combine(
     timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-    errors({ stack: true }), // Log the full stack trace on errors
-    process.env.NODE_ENV === "production"
-      ? json()
-      : combine(colorize(), logFormat),
-    format.splat(),
-    colorize({ all: true }),
+    env.isProd ? logFormat : combine(colorize({ all: true }), logFormat),
   ),
   transports: [new transports.Console()],
 });
 
 // Only add file transports in production to avoid cluttering local dev with files
-if (process.env.NODE_ENV === "production") {
+if (env.isProd) {
   logger.add(
     new transports.DailyRotateFile({
       filename: path.join("logs", "error-%DATE%.log"),
@@ -41,7 +46,6 @@ if (process.env.NODE_ENV === "production") {
       level: "error",
       maxSize: "20m",
       maxFiles: "14d",
-      zippedArchive: true,
     }),
   );
 
@@ -51,7 +55,6 @@ if (process.env.NODE_ENV === "production") {
       datePattern: "YYYY-MM-DD",
       maxSize: "20m",
       maxFiles: "14d",
-      zippedArchive: true,
     }),
   );
 }

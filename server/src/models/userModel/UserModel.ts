@@ -1,6 +1,8 @@
-import mongoose, { Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 
-const userSchema = new Schema(
+import { IUser } from "@types";
+
+const UserSchema = new Schema<IUser>(
   {
     username: {
       type: "string",
@@ -32,14 +34,21 @@ const userSchema = new Schema(
     password: {
       type: "string",
       trim: true,
-      required: true,
     },
     isVerified: {
       type: "boolean",
       default: false,
     },
+    provider: {
+      type: "string",
+      required: true,
+      default: "local",
+    },
+    providerId: {
+      type: "string",
+    },
   },
   { timestamps: true },
 );
 
-export default model("User", userSchema, "users");
+export default model("User", UserSchema, "users");

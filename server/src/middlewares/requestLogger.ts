@@ -1,5 +1,6 @@
-import { logger } from "@utils";
 import { NextFunction, Request, Response } from "express";
+
+import { logger } from "@utils";
 
 const requestLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
@@ -8,11 +9,7 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
     const duration = Date.now() - start;
     const message = `${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`;
 
-    if (res.statusCode >= 400) {
-      logger.error("Message From requestLogger:: %s", message);
-    } else {
-      logger.info(message);
-    }
+    logger.info(message);
   });
 
   next();

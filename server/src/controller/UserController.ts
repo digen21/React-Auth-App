@@ -1,138 +1,121 @@
+import bcrypt from "bcrypt";
+import { NextFunction, Request, Response } from "express";
+import httpStatus from "http-status";
+import jwt from "jsonwebtoken";
+import { Profile } from "passport-google-oauth20";
+
+import { env } from "@config";
 import { transporter } from "@middlewares";
 import TokenModel from "@models/tokenModel";
 import { UserModel } from "@models/userModel";
-import { logger, ServerError } from "@utils";
-import bcrypt from "bcrypt";
-import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import { IUser, UserWithToken } from "@types";
+import { catchAsync, logger, ServerError } from "@utils";
 
-const { JWT_TOKEN, EXPIRY_TIME } = process.env;
+const { JWT_TOKEN, EXPIRY_TIME } = env;
 
-interface IUser {
-  username?: string;
-  name?: string;
-  city?: string;
-  country?: string;
-  password: string;
-  id: string;
-  _id: string;
-  email: string;
-  bio?: string;
-  avatar?: string;
-  phoneNumber?: string;
-  isVerified: boolean;
-}
+export const register = catchAsync(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-const register = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { email, password } = req.body;
-
-    let user = await UserModel.findOne({ email });
-    if (user)
-      throw new ServerError({
-        message: "User Already Exists...",
-        success: false,
-        status: 400,
-      });
-    const hashPassword = await bcrypt.hash(password, 10);
-    const result = await UserModel.create({
-      ...req.body,
-      password: hashPassword,
-    });
-
-    await transporter(result, "verify-mail");
-
-    if (result) {
-      return res.status(200).send({
-        success: true,
-        message: "Registered Successfully...",
-      });
-    }
-
+  if (!email || !password)
     throw new ServerError({
+      message: "Invalid Input",
       success: false,
-      message: "Check email or password",
-      status: 400,
+      status: httpStatus.BAD_REQUEST,
     });
-  } catch (error) {
-    logger.error(error);
-    if (error instanceof ServerError) return next(error);
-    return next(
-      new ServerError({
-        message: "Failed to register",
-        success: false,
-        status: 500,
-      }),
-    );
-  }
-};
 
-const login = async (req: Request, res: Response, next: NextFunction) => {
+  let user = await UserModel.findOne({ email });
+  if (user)
+    throw new ServerError({
+      message: "User Already Exists...",
+      success: false,
+      status: httpStatus.BAD_REQUEST,
+    });
+  const hashPassword = await bcrypt.hash(password, 10);
+  const result = await UserModel.create({
+    ...req.body,
+    password: hashPassword,
+  });
+
+  // avoid breaking the code if send verification mail is failed
   try {
+    await transporter(result, "verify-mail");
+  } catch (error) {
+    logger.error("Failed to send verification mail: ", {
+      error,
+      context: "Nodemailer",
+    });
+  }
+
+  if (result) {
+    return res.status(httpStatus.CREATED).send({
+      success: true,
+      message: "Registered Successfully...",
+      status: httpStatus.CREATED,
+    });
+  }
+
+  throw new ServerError({
+    success: false,
+    message: "Check email or password",
+    status: httpStatus.BAD_REQUEST,
+  });
+});
+
+export const login = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const { password, email } = req.body;
 
     const user: IUser = await UserModel.findOne({
       email: email.trim().toLowerCase(),
     });
 
-    if (user) {
-      const isMatch = await bcrypt.compare(password, user.password);
-
-      if (isMatch) {
-        if (user.isVerified) {
-          const token = jwt.sign({ userId: user.id }, JWT_TOKEN!, {
-            expiresIn: "10d",
-          });
-
-          return res.send({
-            success: true,
-            token: token,
-          });
-        } else {
-          throw new ServerError({
-            message: "Please Verify Your Email First...",
-            success: false,
-            status: 400,
-          });
-        }
-      } else {
-        throw new ServerError({
-          message: "Unauthorized",
-          success: false,
-          status: 401,
-        });
-      }
-    } else {
+    if (!user) {
       throw new ServerError({
         message: "Invalid Credential",
         success: false,
-        status: 400,
+        status: httpStatus.BAD_REQUEST,
       });
     }
-  } catch (error) {
-    logger.error(error);
 
-    if (error instanceof ServerError) next(error);
-
-    return next(
-      new ServerError({
-        message: "Failed login",
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new ServerError({
+        message: "Unauthorized",
         success: false,
-        status: 500,
-      }),
-    );
-  }
-};
+        status: httpStatus.UNAUTHORIZED,
+      });
+    }
 
-const updateUser = async (req: Request, res: Response, next: NextFunction) => {
-  try {
+    if (!user.isVerified) {
+      throw new ServerError({
+        message: "Please verify your email first",
+        success: false,
+        status: httpStatus.BAD_REQUEST,
+      });
+    }
+
+    const token = jwt.sign({ userId: user.id }, JWT_TOKEN!, {
+      expiresIn: env.EXPIRY_TIME,
+    });
+
+    return res.status(httpStatus.OK).send({
+      success: true,
+      token,
+      status: httpStatus.OK,
+      message: "Login Successfully",
+    });
+  },
+);
+
+export const updateUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as IUser;
     const { password, email } = req.body;
 
     if (email) {
       throw new ServerError({
         message: "Email is not allow to update",
-        status: 400,
+        status: httpStatus.BAD_REQUEST,
         success: false,
       });
     }
@@ -151,7 +134,7 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
       throw new ServerError({
         message: "Failed to update user",
         success: false,
-        status: 500,
+        status: httpStatus.BAD_REQUEST,
       });
     }
 
@@ -159,41 +142,92 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
       success: true,
       message: "User updated successfully",
       data: updateUser,
+      status: httpStatus.OK,
     });
-  } catch (error) {
-    logger.error(error);
-    if (error instanceof ServerError) return next(error);
+  },
+);
+
+export const verifyMail = catchAsync(async (req: Request, res: Response) => {
+  const tokenDetails = await TokenModel.findOne({ token: req.body.token });
+
+  if (!tokenDetails) {
+    logger.error("Token Details not found", { context: "Database" });
     throw new ServerError({
-      message: "Failed to update user",
+      message: "Invalid Token",
+      status: httpStatus.BAD_REQUEST,
       success: false,
-      status: 500,
     });
   }
-};
 
-const verifyMail = async (req: Request, res: Response) => {
-  try {
-    const tokenDetails = await TokenModel.findOne({ token: req.body.token });
-    if (tokenDetails) {
-      await UserModel.findOneAndUpdate({
-        id: tokenDetails.userId,
-        isVerified: true,
-      });
+  await UserModel.findOneAndUpdate({
+    id: tokenDetails.userId,
+    isVerified: true,
+  });
 
-      await TokenModel.findOneAndDelete({
-        token: req.body.token,
-      });
+  await TokenModel.findOneAndDelete({
+    token: req.body.token,
+  });
 
-      res.send({
-        success: true,
-        message: "Mail Verified",
+  return res.send({
+    success: true,
+    message: "Mail Verified",
+    status: httpStatus.OK,
+  });
+});
+
+export const googleAuthSuccess = catchAsync(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ServerError({
+        message: "Authentication failed",
+        status: httpStatus.UNAUTHORIZED,
+        success: false,
       });
-    } else {
-      res.send({ success: false, message: "Invalid Token" });
     }
-  } catch (error) {
-    res.send({ success: false, message: "Invalid Token" });
-  }
-};
+    return res.json({
+      user: req.user,
+      status: httpStatus.OK,
+      message: "Google authentication successful",
+    });
+  },
+);
 
-export { login, register, updateUser, verifyMail };
+export const googleAuthFailure = catchAsync(
+  async (_req: Request, res: Response) => {
+    return res.status(httpStatus.UNAUTHORIZED).json({
+      message: "Google authentication failed",
+      status: httpStatus.UNAUTHORIZED,
+      success: false,
+    });
+  },
+);
+
+export const findOrCreateGoogleUser = async (
+  profile: Profile,
+): Promise<UserWithToken> => {
+  let user = await UserModel.findOne({
+    providerId: profile.id,
+    provider: "google",
+  });
+
+  if (!user) {
+    user = await UserModel.create({
+      username: profile.displayName,
+      email: profile.emails[0].value,
+      avatar: profile.photos[0].value,
+      provider: "google",
+      providerId: profile.id,
+      name: `${profile?.name?.givenName} ${profile?.name?.familyName}`,
+      isVerified: profile?.emails?.[0].verified,
+    });
+  }
+
+  const token = await jwt.sign({ userId: user.id }, JWT_TOKEN!, {
+    expiresIn: EXPIRY_TIME,
+  });
+
+  return {
+    ...user.toObject(),
+    token,
+  };
+};

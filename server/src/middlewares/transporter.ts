@@ -2,6 +2,7 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 
 import TokenModel from "@models/tokenModel";
+import { IUser } from "@types";
 
 const {
   MAIL_HOST,
@@ -12,7 +13,7 @@ const {
   FRONTEND_URL,
 }: any = process.env;
 
-export default async (data, mailType) => {
+export default async (data: IUser, mailType) => {
   try {
     const transporter = nodemailer.createTransport({
       host: MAIL_HOST,
