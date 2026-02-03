@@ -15,8 +15,10 @@ const { JWT_TOKEN, EXPIRY_TIME } = env;
 
 export const register = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
+  const normalizedEmail = email.trim().toLowerCase();
 
-  let user = await UserModel.findOne({ email });
+  let user = await UserModel.findOne({ email: normalizedEmail });
+
   if (user)
     throw new ServerError({
       message: "User Already Exists...",
@@ -26,6 +28,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   const hashPassword = await bcrypt.hash(password, 10);
   const result = await UserModel.create({
     ...req.body,
+    email: normalizedEmail,
     password: hashPassword,
   });
 

@@ -1,8 +1,11 @@
 import mongoose from "mongoose";
 
 import { logger } from "@utils";
+import { env } from "@config";
 
-const { MONGO_URI } = process.env;
+const { MONGODB_URI, MONGO_URI_TEST, isTest } = env;
+
+const MONGO_URI = isTest ? MONGO_URI_TEST : MONGODB_URI;
 
 export default () => {
   try {
