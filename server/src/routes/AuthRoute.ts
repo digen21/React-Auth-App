@@ -4,14 +4,16 @@ import passport from "passport";
 import {
   googleAuthFailure,
   googleAuthSuccess,
+  googleMobileAuth,
   login,
   register,
   verifyMail,
 } from "@controllers";
 import { isAuth, validate } from "@middlewares";
 import {
-  registerValidator,
+  googleAuthValidator,
   loginValidator,
+  registerValidator,
   verifyMailValidator,
 } from "@validators";
 
@@ -29,7 +31,7 @@ authRouter.get("/profile", isAuth, (req, res) => {
 });
 
 authRouter.get(
-  "/google",
+  "/google/web",
   passport.authenticate("google", { scope: ["profile", "email"] }),
 );
 
@@ -40,5 +42,11 @@ authRouter.get(
 );
 
 authRouter.get("/google/failure", googleAuthFailure);
+
+authRouter.post(
+  "/google/mobile",
+  validate(googleAuthValidator),
+  googleMobileAuth,
+);
 
 export default authRouter;

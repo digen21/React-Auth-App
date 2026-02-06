@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
+import { OAuth2Client } from "google-auth-library";
 import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
 import { Profile } from "passport-google-oauth20";
@@ -12,6 +13,8 @@ import { IUser, UserWithToken } from "@types";
 import { catchAsync, logger, ServerError } from "@utils";
 
 const { JWT_TOKEN, EXPIRY_TIME } = env;
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const register = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -229,3 +232,64 @@ export const findOrCreateGoogleUser = async (
     token,
   };
 };
+
+export const googleMobileAuth = catchAsync(
+  async (req: Request, res: Response) => {
+    const { token } = req.body;
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      throw new ServerError({
+        message: "Invalid Google token",
+        status: httpStatus.UNAUTHORIZED,
+        success: false,
+      });
+    }
+
+    const { sub: googleId, email, name, picture } = payload;
+
+    if (!email) {
+      throw new ServerError({
+        message: "Google account has no email",
+        status: httpStatus.UNAUTHORIZED,
+        success: false,
+      });
+    }
+
+    let user = await UserModel.findOne({ email });
+
+    if (!user) {
+      user = await UserModel.create({
+        email,
+        name,
+        avatar: picture,
+        provider: "google",
+        providerId: googleId,
+        isVerified: true,
+      });
+    }
+
+    const appToken = jwt.sign({ userId: user.id }, JWT_TOKEN!, {
+      expiresIn: env.EXPIRY_TIME,
+    });
+
+    return res.status(httpStatus.OK).json({
+      status: httpStatus.OK,
+      success: true,
+      message: "Google authentication successful",
+      token: appToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+      },
+    });
+  },
+);
