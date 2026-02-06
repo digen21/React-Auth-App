@@ -17,7 +17,4 @@ export const updateUserValidator = Joi.object({
     password: Joi.string().min(6).optional(),
     // Note: email, isVerified, provider, providerId are not allowed to be updated via this endpoint
   }),
-  params: Joi.object({
-    id: JoiObjectId().required(),
-  }),
 });
