@@ -1,8 +1,9 @@
 import bcrypt from "bcrypt";
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { OAuth2Client } from "google-auth-library";
 import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import { Profile } from "passport-google-oauth20";
 
 import { env } from "@config";
@@ -62,118 +63,129 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const login = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { password, email } = req.body;
+export const login = catchAsync(async (req: Request, res: Response) => {
+  const { password, email } = req.body;
 
-    const user: IUser = await UserModel.findOne({
-      email: email.trim().toLowerCase(),
-    });
+  const user: IUser = await UserModel.findOne({
+    email: email.trim().toLowerCase(),
+  });
 
-    if (!user) {
-      throw new ServerError({
-        message: "Invalid Credential",
-        success: false,
-        status: httpStatus.BAD_REQUEST,
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw new ServerError({
-        message: "Unauthorized",
-        success: false,
-        status: httpStatus.UNAUTHORIZED,
-      });
-    }
-
-    if (!user.isVerified) {
-      throw new ServerError({
-        message: "Please verify your email first",
-        success: false,
-        status: httpStatus.BAD_REQUEST,
-      });
-    }
-
-    const token = jwt.sign({ userId: user.id }, JWT_TOKEN!, {
-      expiresIn: env.EXPIRY_TIME,
-    });
-
-    return res.status(httpStatus.OK).send({
-      success: true,
-      token,
-      status: httpStatus.OK,
-      message: "Login Successfully",
-    });
-  },
-);
-
-export const updateUser = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user as IUser;
-    const { password, email } = req.body;
-
-    if (email) {
-      throw new ServerError({
-        message: "Email is not allow to update",
-        status: httpStatus.BAD_REQUEST,
-        success: false,
-      });
-    }
-
-    let hashedPassword: string;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-      req.body.password = hashedPassword;
-    }
-
-    const updateUser = await UserModel.findByIdAndUpdate(user.id, req.body, {
-      new: true,
-    });
-
-    if (!updateUser) {
-      throw new ServerError({
-        message: "Failed to update user",
-        success: false,
-        status: httpStatus.BAD_REQUEST,
-      });
-    }
-
-    return res.send({
-      success: true,
-      message: "User updated successfully",
-      data: updateUser,
-      status: httpStatus.OK,
-    });
-  },
-);
-
-export const verifyMail = catchAsync(async (req: Request, res: Response) => {
-  const tokenDetails = await TokenModel.findOne({ token: req.body.token });
-
-  if (!tokenDetails) {
-    logger.error("Token Details not found", { context: "Database" });
+  if (!user) {
     throw new ServerError({
-      message: "Invalid Token",
+      message: "Invalid Credential",
+      success: false,
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    throw new ServerError({
+      message: "Unauthorized",
+      success: false,
+      status: httpStatus.UNAUTHORIZED,
+    });
+  }
+
+  if (!user.isVerified) {
+    throw new ServerError({
+      message: "Please verify your email first",
+      success: false,
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
+
+  const token = jwt.sign({ userId: user.id }, JWT_TOKEN!, {
+    expiresIn: env.EXPIRY_TIME,
+  });
+
+  return res.status(httpStatus.OK).send({
+    success: true,
+    token,
+    status: httpStatus.OK,
+    message: "Login Successfully",
+  });
+});
+
+export const updateUser = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as IUser;
+  const { password, email } = req.body;
+
+  if (email) {
+    throw new ServerError({
+      message: "Email is not allow to update",
       status: httpStatus.BAD_REQUEST,
       success: false,
     });
   }
 
-  await UserModel.findOneAndUpdate({
-    id: tokenDetails.userId,
-    isVerified: true,
+  let hashedPassword: string;
+  if (password) {
+    hashedPassword = await bcrypt.hash(password, 10);
+    req.body.password = hashedPassword;
+  }
+
+  const updateUser = await UserModel.findByIdAndUpdate(user.id, req.body, {
+    new: true,
   });
 
-  await TokenModel.findOneAndDelete({
-    token: req.body.token,
-  });
+  if (!updateUser) {
+    throw new ServerError({
+      message: "Failed to update user",
+      success: false,
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
 
   return res.send({
     success: true,
-    message: "Mail Verified",
+    message: "User updated successfully",
+    data: updateUser,
     status: httpStatus.OK,
   });
+});
+
+export const verifyMail = catchAsync(async (req: Request, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const tokenDetails = await TokenModel.findOne({ token: req.body.token });
+
+    if (!tokenDetails) {
+      logger.error("Token Details not found", { context: "Database" });
+      throw new ServerError({
+        message: "Invalid Token",
+        status: httpStatus.BAD_REQUEST,
+        success: false,
+      });
+    }
+
+    await UserModel.findOneAndUpdate({
+      id: tokenDetails.userId,
+      isVerified: true,
+    });
+
+    await TokenModel.findOneAndDelete({
+      token: req.body.token,
+    });
+
+    await session.commitTransaction();
+
+    return res.send({
+      success: true,
+      message: "Mail Verified",
+      status: httpStatus.OK,
+    });
+  } catch (error) {
+    logger.error("Error in verifyMail", {
+      context: "Database Transaction",
+      error,
+    });
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 });
 
 export const googleAuthSuccess = catchAsync(
