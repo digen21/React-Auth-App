@@ -5,6 +5,7 @@ import express from "express";
 import { env } from "@config";
 import {
   connectToDatabase,
+  generalLimiter,
   globalErrorHandler,
   googleAuth,
   passportAuth,
@@ -15,6 +16,9 @@ import { logger } from "@utils";
 
 const app = express();
 const { PORT } = env;
+
+// Apply general rate limiting to all requests
+app.use(generalLimiter);
 
 app.use(requestLogger);
 app.use(express.json());
