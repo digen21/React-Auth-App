@@ -42,6 +42,9 @@ const envSchema = Joi.object({
     otherwise: Joi.string().required(),
   }),
   EMAIL_FROM: Joi.string(),
+  CLOUDINARY_SECRET: Joi.string().required(),
+  CLOUDINARY_CLOUD_NAME: Joi.string().required(),
+  CLOUDINARY_KEY: Joi.string().required(),
 }).unknown();
 
 const { error, value: envVars } = envSchema.validate(process.env);
@@ -69,6 +72,9 @@ const env = {
   MAIL_PASSWORD: envVars.MAIL_PASSWORD,
   EMAIL_FROM: envVars.EMAIL_FROM || "no-reply@travel-buddy",
   EXPIRY_TIME: envVars.EXPIRY_TIME || "10d",
+  CLOUDINARY_SECRET: envVars.CLOUDINARY_SECRET,
+  CLOUDINARY_CLOUD_NAME: envVars.CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_KEY: envVars.CLOUDINARY_KEY,
 };
 
 export default env;

@@ -1,5 +1,6 @@
 import compression from "compression";
 import cors from "cors";
+import bodyParser from "body-parser";
 import express from "express";
 
 import { env } from "@config";
@@ -22,6 +23,7 @@ app.use(generalLimiter);
 
 app.use(requestLogger);
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
 
 app.get("/health", (_req, res) => {

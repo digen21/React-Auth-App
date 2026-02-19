@@ -11,7 +11,12 @@ import { transporter } from "@middlewares";
 import TokenModel from "@models/tokenModel";
 import { UserModel } from "@models/userModel";
 import { IUser, UserWithToken } from "@types";
-import { catchAsync, logger, ServerError } from "@utils";
+import {
+  catchAsync,
+  getUploadImageSignature,
+  logger,
+  ServerError,
+} from "@utils";
 
 const { JWT_TOKEN, EXPIRY_TIME } = env;
 
@@ -301,6 +306,37 @@ export const googleMobileAuth = catchAsync(
         email: user.email,
         name: user.name,
         avatar: user.avatar,
+      },
+    });
+  },
+);
+
+export const getUserImageUploadSignature = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = req.user as IUser;
+    const timestamp = Math.round(Date.now() / 1000);
+    const folder = "users";
+    const public_id = `user_${user.id}_${timestamp}`;
+
+    const signature = getUploadImageSignature({
+      timestamp,
+      folder,
+      public_id,
+      resource_type: "image",
+      upload_preset: "user_images_signed",
+    });
+
+    return res.status(httpStatus.OK).json({
+      success: true,
+      data: {
+        timestamp,
+        signature,
+        folder,
+        public_id,
+        resource_type: "image",
+        api_key: env.CLOUDINARY_KEY,
+        cloud_name: env.CLOUDINARY_CLOUD_NAME,
+        upload_preset: "user_images_signed",
       },
     });
   },
