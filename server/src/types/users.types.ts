@@ -17,4 +17,11 @@ interface IUser {
 
 export type UserWithToken = IUser & { token: string };
 
+export type IUserDoc = IUser &
+  Document & {
+    createdAt: Date;
+    updatedAt: Date;
+    __v: number;
+  };
+
 export default IUser;

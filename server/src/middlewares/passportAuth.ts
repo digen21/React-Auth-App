@@ -1,6 +1,6 @@
 import { Express } from "express";
 import passport from "passport";
-import { ExtractJwt, Strategy } from "passport-jwt";
+import { ExtractJwt, Strategy, VerifiedCallback } from "passport-jwt";
 
 import { UserModel } from "@models/userModel";
 
@@ -19,7 +19,7 @@ export default (app: Express) => {
 
   try {
     passport.use(
-      new Strategy(options, async (payload: IUser, done: Function) => {
+      new Strategy(options, async (payload: IUser, done: VerifiedCallback) => {
         if (!payload) {
           return done(null, false);
         }
@@ -32,6 +32,6 @@ export default (app: Express) => {
 
     app.use(passport.initialize());
   } catch (error) {
-    throw new Error(error);
+    throw new Error("Unauthorized", { cause: error });
   }
 };

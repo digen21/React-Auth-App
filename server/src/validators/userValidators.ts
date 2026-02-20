@@ -1,7 +1,4 @@
 import Joi from "joi";
-import joiObjectId from "joi-objectid";
-
-const JoiObjectId = joiObjectId(Joi);
 
 export const updateUserValidator = Joi.object({
   body: Joi.object({

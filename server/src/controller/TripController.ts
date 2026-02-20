@@ -1,12 +1,69 @@
-import { env } from "@config";
-import { IUser } from "@types";
-import { catchAsync, getUploadImageSignature } from "@utils";
 import { Request, Response } from "express";
 import httpStatus from "http-status";
+import { QueryFilter } from "mongoose";
 
-export const createTrip = catchAsync(
-  async (_req: Request, _res: Response) => {},
-);
+import { env } from "@config";
+import { tripService } from "@services";
+import { FilterTrips, IUser } from "@types";
+import { catchAsync, getUploadImageSignature, ServerError } from "@utils";
+
+export const createTrip = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as IUser;
+
+  const trip = await tripService.create({
+    ...req.body,
+    createdBy: user.id,
+    members: [user.id],
+  });
+
+  if (!trip) {
+    throw new ServerError({
+      message: "Failed to create trip",
+      success: false,
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
+
+  return res.status(httpStatus.CREATED).json({
+    success: true,
+    message: "Trip created successfully",
+    status: httpStatus.CREATED,
+    data: trip,
+  });
+});
+
+export const getTrips = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as IUser;
+  const page = Number(req.query.page || 1);
+  const limit = Number(req.query.limit || 10);
+
+  const filter: QueryFilter<FilterTrips> = {
+    $or: [{ createdBy: user._id }, { members: { $in: [user._id] } }],
+  };
+
+  const trips = await tripService.find(filter, {
+    page,
+    limit,
+    populate: [
+      {
+        path: "createdBy",
+        select: "name email",
+      },
+      {
+        path: "members",
+        select: "name email",
+      },
+    ],
+    sort: { createdAt: -1 },
+    lean: true,
+  });
+
+  return res.status(httpStatus.OK).json({
+    success: true,
+    status: httpStatus.OK,
+    data: trips,
+  });
+});
 
 export const getTripImageUploadSignature = catchAsync(
   async (req: Request, res: Response) => {
@@ -38,3 +95,26 @@ export const getTripImageUploadSignature = catchAsync(
     });
   },
 );
+
+export const updateTrip = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params as { id: string };
+
+  const trip = await tripService.findById(id);
+
+  if (!trip)
+    throw new ServerError({
+      message: "Trip not found",
+      success: false,
+      status: httpStatus.NOT_FOUND,
+    });
+
+  const updatedTrip = await tripService.findByIdAndUpdate(id, req.body, {
+    new: true,
+  });
+
+  return res.status(httpStatus.OK).json({
+    success: true,
+    status: httpStatus.OK,
+    data: updatedTrip,
+  });
+});

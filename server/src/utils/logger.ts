@@ -5,7 +5,7 @@ import util from "util";
 
 import { env } from "@config";
 
-const { combine, timestamp, json, printf, colorize, errors } = format;
+const { combine, timestamp, printf, colorize } = format;
 
 const customColors = {
   info: "blue",

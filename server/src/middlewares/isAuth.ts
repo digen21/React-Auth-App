@@ -1,15 +1,8 @@
-import { NextFunction, Request, RequestHandler, Response } from "express";
+import { RequestHandler } from "express";
 import passport from "passport";
-import { ExtractJwt } from "passport-jwt";
-const { JWT_TOKEN } = process.env;
-
-const options = {
-  secretOrKey: JWT_TOKEN,
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-};
 
 const isAuth: RequestHandler = (req, res, next) => {
-  passport.authenticate("jwt", { session: false }, (err, user, info) => {
+  passport.authenticate("jwt", { session: false }, (err, user, _info) => {
     if (err) {
       return next(err);
     }

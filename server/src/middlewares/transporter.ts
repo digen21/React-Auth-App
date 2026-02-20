@@ -1,13 +1,14 @@
-import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
+import nodemailer from "nodemailer";
 
+import { env } from "@config";
 import TokenModel from "@models/tokenModel";
 import { IUser } from "@types";
-import { env } from "@config";
+import { logger } from "@utils";
 
 const { MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASSWORD, EMAIL_FROM } = env;
 
-export default async (data: IUser, mailType) => {
+export default async (data: IUser) => {
   try {
     const transporter = nodemailer.createTransport({
       host: MAIL_HOST,
@@ -36,5 +37,11 @@ export default async (data: IUser, mailType) => {
     };
 
     await transporter.sendMail(options);
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error sending verification email:", error);
+    logger.error("Error sending verification email: ", {
+      error,
+      context: "Nodemailer",
+    });
+  }
 };

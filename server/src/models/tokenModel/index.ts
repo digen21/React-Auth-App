@@ -1,6 +1,8 @@
-import { Schema, model } from "mongoose";
+import { Document, PaginateModel, Schema, model } from "mongoose";
 
-const tokenSchema = new Schema(
+import { IToken, ITokenDoc } from "@types";
+
+const tokenSchema = new Schema<ITokenDoc>(
   {
     userId: {
       type: "string",
@@ -13,7 +15,11 @@ const tokenSchema = new Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default model("token", tokenSchema);
+export default model<ITokenDoc, PaginateModel<ITokenDoc>>(
+  "Token",
+  tokenSchema,
+  "tokens",
+);

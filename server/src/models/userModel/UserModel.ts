@@ -1,8 +1,9 @@
-import { Schema, model } from "mongoose";
+import { PaginateModel, Schema, model } from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
-import { IUser } from "@types";
+import { IUserDoc } from "@types";
 
-const UserSchema = new Schema<IUser>(
+const UserSchema = new Schema<IUserDoc>(
   {
     username: {
       type: "string",
@@ -51,4 +52,8 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true },
 );
 
-export default model("User", UserSchema, "users");
+UserSchema.plugin(mongoosePaginate);
+
+const UserModel = model<IUserDoc, PaginateModel<IUserDoc>>("User", UserSchema);
+
+export default UserModel;

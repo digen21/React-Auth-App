@@ -8,8 +8,7 @@ import { Profile } from "passport-google-oauth20";
 
 import { env } from "@config";
 import { transporter } from "@middlewares";
-import TokenModel from "@models/tokenModel";
-import { UserModel } from "@models/userModel";
+import { tokenService, userService } from "@services";
 import { IUser, UserWithToken } from "@types";
 import {
   catchAsync,
@@ -26,7 +25,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const normalizedEmail = email.trim().toLowerCase();
 
-  let user = await UserModel.findOne({ email: normalizedEmail });
+  const user = await userService.findOne({ email: normalizedEmail });
 
   if (user)
     throw new ServerError({
@@ -35,7 +34,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
       status: httpStatus.BAD_REQUEST,
     });
   const hashPassword = await bcrypt.hash(password, 10);
-  const result = await UserModel.create({
+  const result = await userService.create({
     ...req.body,
     email: normalizedEmail,
     password: hashPassword,
@@ -44,7 +43,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   // avoid breaking the code if send verification mail is failed
   try {
     if (!env.isTest) {
-      await transporter(result, "verify-mail");
+      await transporter(result);
     }
   } catch (error) {
     logger.error("Failed to send verification mail: ", {
@@ -71,13 +70,21 @@ export const register = catchAsync(async (req: Request, res: Response) => {
 export const login = catchAsync(async (req: Request, res: Response) => {
   const { password, email } = req.body;
 
-  const user: IUser = await UserModel.findOne({
+  const user: IUser = await userService.findOne({
     email: email.trim().toLowerCase(),
   });
 
   if (!user) {
     throw new ServerError({
       message: "Invalid Credential",
+      success: false,
+      status: httpStatus.BAD_REQUEST,
+    });
+  }
+
+  if (user.provider !== "local") {
+    throw new ServerError({
+      message: `Please login with ${user.provider}`,
       success: false,
       status: httpStatus.BAD_REQUEST,
     });
@@ -130,9 +137,7 @@ export const updateUser = catchAsync(async (req: Request, res: Response) => {
     req.body.password = hashedPassword;
   }
 
-  const updateUser = await UserModel.findByIdAndUpdate(user.id, req.body, {
-    new: true,
-  });
+  const updateUser = await userService.findByIdAndUpdate(user.id, req.body);
 
   if (!updateUser) {
     throw new ServerError({
@@ -155,7 +160,7 @@ export const verifyMail = catchAsync(async (req: Request, res: Response) => {
   session.startTransaction();
 
   try {
-    const tokenDetails = await TokenModel.findOne({ token: req.body.token });
+    const tokenDetails = await tokenService.findOne({ token: req.body.token });
 
     if (!tokenDetails) {
       logger.error("Token Details not found", { context: "Database" });
@@ -166,12 +171,11 @@ export const verifyMail = catchAsync(async (req: Request, res: Response) => {
       });
     }
 
-    await UserModel.findOneAndUpdate({
-      id: tokenDetails.userId,
+    await userService.findByIdAndUpdate(tokenDetails.userId, {
       isVerified: true,
     });
 
-    await TokenModel.findOneAndDelete({
+    await tokenService.delete({
       token: req.body.token,
     });
 
@@ -223,13 +227,13 @@ export const googleAuthFailure = catchAsync(
 export const findOrCreateGoogleUser = async (
   profile: Profile,
 ): Promise<UserWithToken> => {
-  let user = await UserModel.findOne({
+  let user = await userService.findOne({
     providerId: profile.id,
     provider: "google",
   });
 
   if (!user) {
-    user = await UserModel.create({
+    user = await userService.create({
       username: profile.displayName,
       email: profile.emails[0].value,
       avatar: profile.photos[0].value,
@@ -240,7 +244,7 @@ export const findOrCreateGoogleUser = async (
     });
   }
 
-  const token = await jwt.sign({ userId: user.id }, JWT_TOKEN!, {
+  const token = jwt.sign({ userId: user.id }, JWT_TOKEN!, {
     expiresIn: EXPIRY_TIME,
   });
 
@@ -279,10 +283,10 @@ export const googleMobileAuth = catchAsync(
       });
     }
 
-    let user = await UserModel.findOne({ email });
+    let user = await userService.findOne({ email });
 
     if (!user) {
-      user = await UserModel.create({
+      user = await userService.create({
         email,
         name,
         avatar: picture,

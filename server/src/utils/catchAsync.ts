@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-type AsyncHandler<T = any> = (
+type AsyncHandler<T = unknown> = (
   req: Request,
   res: Response,
   next: NextFunction,

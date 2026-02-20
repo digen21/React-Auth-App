@@ -9,7 +9,6 @@ const API_PREFIX = "/api";
 
 const useRouter = (app: Express) => {
   const apiRouter = express.Router();
-  console.log("HERE: -----");
 
   apiRouter.use("/auth", authRouter);
   apiRouter.use("/users", isAuth, userRouter);
